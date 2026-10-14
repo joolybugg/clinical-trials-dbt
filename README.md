@@ -3,6 +3,7 @@
 An ELT pipeline that loads public study registrations from the ClinicalTrials.gov v2 API into Snowflake and models them with dbt into sponsor, study, and research-site marts. The reporting layer answers a site-capacity question: which US research sites carry the heaviest trial load, and how much of it comes from industry sponsors.
 
 ## Architecture
+<img width="328" height="747" alt="image" src="https://github.com/user-attachments/assets/84e7becb-e588-4167-ab0f-896c006b50f8" />
 
 ```
 ClinicalTrials.gov API v2
