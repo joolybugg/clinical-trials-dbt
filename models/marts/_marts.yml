@@ -1,0 +1,47 @@
+version: 2
+
+models:
+  - name: fct_studies
+    description: One row per study with site counts, collaborator counts, and timeline measures.
+    columns:
+      - name: nct_id
+        tests: [unique, not_null]
+      - name: sponsor_id
+        tests:
+          - relationships:
+              arguments:
+                to: ref('dim_sponsors')
+                field: sponsor_id
+              config:
+                where: "sponsor_id is not null"
+      - name: site_count
+        tests: [not_null]
+
+  - name: dim_sponsors
+    description: One row per lead sponsor with portfolio measures.
+    columns:
+      - name: sponsor_id
+        tests: [unique, not_null]
+      - name: study_count
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 1
+
+  - name: fct_study_sites
+    description: One row per study site, enriched with study and sponsor attributes.
+    columns:
+      - name: study_site_id
+        tests: [unique, not_null]
+
+  - name: rpt_site_activity
+    description: US facility-level trial load and sponsor mix for site capacity reporting.
+    columns:
+      - name: facility_id
+        tests: [unique, not_null]
+      - name: industry_share
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 1

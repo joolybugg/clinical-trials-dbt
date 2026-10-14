@@ -1,0 +1,4 @@
+dbt-snowflake>=1.9,<2.0
+snowflake-connector-python>=3.10
+requests>=2.31
+python-dotenv>=1.0

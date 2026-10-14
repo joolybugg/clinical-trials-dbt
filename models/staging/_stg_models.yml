@@ -1,0 +1,56 @@
+version: 2
+
+models:
+  - name: stg_ctgov__studies
+    description: One row per study, latest load only, with dates normalized.
+    columns:
+      - name: nct_id
+        description: ClinicalTrials.gov registry identifier.
+        tests: [unique, not_null]
+      - name: overall_status
+        tests:
+          - accepted_values:
+              arguments:
+                values: [RECRUITING, ACTIVE_NOT_RECRUITING, COMPLETED, NOT_YET_RECRUITING,
+                         ENROLLING_BY_INVITATION, SUSPENDED, TERMINATED, WITHDRAWN,
+                         WITHHELD, NO_LONGER_AVAILABLE, AVAILABLE, APPROVED_FOR_MARKETING,
+                         TEMPORARILY_NOT_AVAILABLE, UNKNOWN]
+      - name: lead_sponsor_class
+        tests:
+          - accepted_values:
+              arguments:
+                values: [INDUSTRY, NIH, FED, OTHER_GOV, INDIV, NETWORK, OTHER, AMBIG, UNKNOWN]
+              config:
+                severity: warn
+      - name: enrollment_count
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+              config:
+                where: "enrollment_count is not null"
+
+  - name: stg_ctgov__locations
+    description: One row per study site from the flattened locations array.
+    columns:
+      - name: study_site_id
+        tests: [unique, not_null]
+      - name: nct_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_ctgov__studies')
+                field: nct_id
+
+  - name: stg_ctgov__conditions
+    description: One row per study and condition.
+    columns:
+      - name: nct_id
+        tests: [not_null]
+
+  - name: stg_ctgov__collaborators
+    description: One row per study and collaborating organization.
+    columns:
+      - name: nct_id
+        tests: [not_null]

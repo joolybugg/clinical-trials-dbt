@@ -1,0 +1,19 @@
+version: 2
+
+sources:
+  - name: ctgov
+    description: Raw ClinicalTrials.gov v2 API records landed by ingest/load_studies.py.
+    database: CTGOV_RAW
+    schema: CTGOV
+    config:
+      loaded_at_field: loaded_at
+      freshness:
+        warn_after: {count: 7, period: day}
+        error_after: {count: 30, period: day}
+    tables:
+      - name: studies_raw
+        description: One row per study per load; the full API record is kept in PAYLOAD as VARIANT.
+        columns:
+          - name: payload
+            tests:
+              - not_null

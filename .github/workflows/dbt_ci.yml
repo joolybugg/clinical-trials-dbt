@@ -1,0 +1,34 @@
+name: dbt CI
+
+# Every pull request builds and tests the project in an isolated CI schema,
+# so a broken model or failing test blocks the merge.
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  dbt-build:
+    runs-on: ubuntu-latest
+    env:
+      SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+      SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
+      SNOWFLAKE_PRIVATE_KEY_PATH: ${{ github.workspace }}/ci/rsa_key.p8
+      SNOWFLAKE_ROLE: TRANSFORMER
+      SNOWFLAKE_WAREHOUSE: CTGOV_WH
+      DBT_PROFILES_DIR: ${{ github.workspace }}/ci
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: Write CI profile
+        run: |
+          mkdir -p ci
+          printf '%s\n' "${{ secrets.SNOWFLAKE_PRIVATE_KEY }}" > ci/rsa_key.p8
+          sed 's/schema: dev/schema: ci/' profiles.example.yml > ci/profiles.yml
+      - run: dbt deps
+      - run: dbt source freshness
+        continue-on-error: true
+      - run: dbt build
